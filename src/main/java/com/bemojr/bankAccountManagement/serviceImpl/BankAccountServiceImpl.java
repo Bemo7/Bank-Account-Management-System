@@ -141,7 +141,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         String baseAccountNumber = String.format("%09d", baseNum);
 
         // Step 2: Calculate checksum
-        int checksum = calculateChecksum(vendorBankCode, baseAccountNumber);
+        int checksum = calculateChecksum(vendorBankCode.length() > 3 ? vendorBankCode.substring(0,3) : vendorBankCode, baseAccountNumber);
 
         // Step 3: Return full 10-digit account number
         return baseAccountNumber + checksum;
@@ -151,7 +151,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         String combined = bankCode + baseAccountNumber; // 3 + 9 = 12 digits
         int sum = 0;
 
-        for (int i = 0; i < WEIGHTS.length; i++) {
+        for (int i = 0; i < combined.length(); i++) {
             int digit = Character.getNumericValue(combined.charAt(i));
             sum += digit * WEIGHTS[i];
         }

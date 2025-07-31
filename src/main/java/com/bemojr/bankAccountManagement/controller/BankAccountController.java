@@ -42,7 +42,7 @@ public class BankAccountController {
         if (accountExist) {
             return new ResponseEntity<>(new GenericResponseDto("Account number exists"), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(new GenericResponseDto("Account number does not exist"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new GenericResponseDto("Not found","Account number does not exist"), HttpStatus.NOT_FOUND);
         }
     }
 }
