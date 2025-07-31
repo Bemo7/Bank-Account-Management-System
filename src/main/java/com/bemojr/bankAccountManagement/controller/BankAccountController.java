@@ -37,7 +37,12 @@ public class BankAccountController {
 
     @GetMapping("verify")
     public ResponseEntity<?> checkAccountExist(@RequestParam("accountNumber") String accountNumber, @Nullable @RequestParam("bankCode") String bankCode) {
-        bankAccountService.checkAccountExist(new AccountCodeAndNumberDto(accountNumber, bankCode));
-        return new ResponseEntity<>(new GenericResponseDto("Account number exists"), HttpStatus.OK);
+        boolean accountExist =  bankAccountService.checkAccountExist(new AccountCodeAndNumberDto(accountNumber, bankCode));
+
+        if (accountExist) {
+            return new ResponseEntity<>(new GenericResponseDto("Account number exists"), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new GenericResponseDto("Account number does not exist"), HttpStatus.NOT_FOUND);
+        }
     }
 }
