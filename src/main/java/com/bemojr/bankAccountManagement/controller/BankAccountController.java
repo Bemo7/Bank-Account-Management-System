@@ -38,6 +38,6 @@ public class BankAccountController {
     @GetMapping("verify")
     public ResponseEntity<?> checkAccountExist(@RequestParam("accountNumber") String accountNumber, @Nullable @RequestParam("bankCode") String bankCode) {
         bankAccountService.checkAccountExist(new AccountCodeAndNumberDto(accountNumber, bankCode));
-        return new ResponseEntity<>(new GenericResponseDto("Account number is exists"), HttpStatus.OK);
+        return new ResponseEntity<>(new GenericResponseDto("Account number exists"), HttpStatus.OK);
     }
 }

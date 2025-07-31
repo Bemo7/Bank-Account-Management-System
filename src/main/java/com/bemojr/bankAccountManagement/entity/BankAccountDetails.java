@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 public class BankAccountDetails {
@@ -55,4 +57,9 @@ public class BankAccountDetails {
             nullable = false
     )
     private String bankCode;
+
+    @Column(
+            nullable = false
+    )
+    private LocalDateTime createdAt;
 }

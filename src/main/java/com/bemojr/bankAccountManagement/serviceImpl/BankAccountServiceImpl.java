@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
@@ -71,6 +71,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         );
         bankAccountDetails.setBankCode(vendorBankCode);
         bankAccountDetails.setBankName(vendorBankName);
+        bankAccountDetails.setCreatedAt(LocalDateTime.now());
 
         return bankAccountDetailsRepository.save(bankAccountDetails);
     }
@@ -82,6 +83,8 @@ public class BankAccountServiceImpl implements BankAccountService {
 
             if (providerResponse != null) {
                 return true;
+            } else if (!requestDto.bankCode().equals(vendorBankCode)) {
+                return false;
             }
         }
 
@@ -90,6 +93,27 @@ public class BankAccountServiceImpl implements BankAccountService {
         );
 
         return bankAccountDetails.isPresent();
+    }
+
+    @Override
+    public BankAccountDetailsDto getAccountDetails(AccountCodeAndNumberDto requestDto) {
+        if (requestDto.bankCode() != null) {
+            BankAccountDetailsDto providerResponse= checkFromProvider(requestDto);
+
+            if (providerResponse != null) {
+                return providerResponse;
+            } else if (!requestDto.bankCode().equals(vendorBankCode)){
+                throw new ResourceNotFoundException("Account does not exist with account number { " + requestDto.accountNumber() + " } and bank code { " + requestDto.bankCode() +" }");
+            }
+        }
+
+        BankAccountDetails bankAccountDetails = bankAccountDetailsRepository.findByAccountNumber(
+                requestDto.accountNumber()
+        ).orElseThrow(
+                ()-> new ResourceNotFoundException("Account does not exist with account number { " + requestDto.accountNumber() + " }")
+        );
+
+        return this.transform(bankAccountDetails);
     }
 
     private BankAccountDetailsDto checkFromProvider(AccountCodeAndNumberDto requestDto) {
@@ -105,31 +129,13 @@ public class BankAccountServiceImpl implements BankAccountService {
         } catch (ResourceNotFoundException e) {
             log.info(e.getMessage());
         }
+
         log.info("Response from third party API -> {}", apiResponse);
 
-        return  apiResponse;
+        return apiResponse;
     }
 
-    @Override
-    public BankAccountDetailsDto getAccountDetails(AccountCodeAndNumberDto requestDto) {
-        if (requestDto.bankCode() != null) {
-            BankAccountDetailsDto providerResponse= checkFromProvider(requestDto);
-
-            if (providerResponse != null) {
-                return providerResponse;
-            }
-        }
-
-        BankAccountDetails bankAccountDetails = bankAccountDetailsRepository.findByAccountNumber(
-                requestDto.accountNumber()
-        ).orElseThrow(
-                ()-> new ResourceNotFoundException("Account does not exist with account number ( " + requestDto.accountNumber() + " )")
-        );
-
-        return this.transform(bankAccountDetails);
-    }
-
-    public String generateNubanAccountNumber() {
+    private String generateNubanAccountNumber() {
         // Step 1: Generate random 9-digit base number with leading zeros
         int baseNum = new Random().nextInt(1_000_000_000); // from 0 to 999,999,999
         String baseAccountNumber = String.format("%09d", baseNum);
@@ -163,6 +169,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccountDetailsDto.setFirstName(bankAccountDetails.getFirstName());
         bankAccountDetailsDto.setLastName(bankAccountDetails.getLastName());
         bankAccountDetailsDto.setOtherName(bankAccountDetails.getOtherName());
+        bankAccountDetailsDto.setCreatedAt(bankAccountDetails.getCreatedAt());
 
         return bankAccountDetailsDto;
     }
